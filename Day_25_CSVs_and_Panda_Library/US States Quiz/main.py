@@ -35,12 +35,12 @@ with open("50_states.csv") as states_file:
         elif answer.lower() == "exit":
             game_on = False
 
-states_to_learn = []
-for state in file.state.str.lower().values:
-    if state in correct_guesses:
-        pass
-    else:
-        states_to_learn.append(state)
+states_to_learn = [st for st in file.state.str.lower().values if st not in correct_guesses ]
+# for state in file.state.str.lower().values:
+#     if state in correct_guesses:
+#         pass
+#     else:
+#         states_to_learn.append(state)
 
 df = {"State": states_to_learn}
 add_data = pd.DataFrame(df)
