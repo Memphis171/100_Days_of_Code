@@ -36,8 +36,8 @@ passwords = []
 
 def add_credentials():
     website = website_entry.get()
-    username = password_entry.get()
-    password = username_entry.get()
+    username = username_entry.get()
+    password = password_entry.get()
     if website == "" or username == "" or password == "":
         messagebox.showerror("Error", "Please fill all fields")
     else:
