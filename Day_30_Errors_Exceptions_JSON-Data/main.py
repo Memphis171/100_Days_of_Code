@@ -24,4 +24,4 @@ finally:
     file.close()
     print("File closed.")
 
-# you could also use the raise function to force an exception when  the code won't break but it shouldn't be an option
+# you could also use the raise function to force an exception when the code won't break, but it shouldn't be an option
