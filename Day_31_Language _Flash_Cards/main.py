@@ -3,6 +3,8 @@ import pandas as pd
 import tkinter as tk
 import random
 
+from pandas.errors import EmptyDataError
+
 # ------- Constants ------- #
 
 BACKGROUND_COLOR = "#B1DDC6"
@@ -12,22 +14,38 @@ FRONT_LANGUAGE = "French"
 BACK_LANGUAGE = "English"
 
 df = pd.read_csv('./data/french_words.csv')
-FRENCH_WORDS = dict(zip(df['French'], df['English']))
-
+FRENCH_WORDS = df.to_dict(orient='records')
+print(FRENCH_WORDS)
 # --------- Create Button Functions -------- #
-known_words = []
-missed_words = []
+known_words = {}
+missed_words = {}
 front_is_shown = True
-french_word = random.choice(list(FRENCH_WORDS.keys()))
-english_word = FRENCH_WORDS[french_word]
+choice = random.choice(FRENCH_WORDS)
+french_word = choice["French"]
+english_word = choice["English"]
 
 
 def choose_words():
-    global french_word,english_word,known_words
-    french_word = random.choice(list(FRENCH_WORDS.keys()))
-    english_word = FRENCH_WORDS[french_word]
-    if french_word in known_words:
-        choose_words()
+    global choice,french_word,english_word,known_words
+    try:
+        choice = random.choice(FRENCH_WORDS)
+        french_word = choice["French"]
+        english_word = choice["English"]
+        prior_vocab_df = pd.read_csv('./data/french_words_learned.csv')
+        if french_word in prior_vocab_df["French"]:
+            choose_words()
+    except EmptyDataError:
+        choice = random.choice(FRENCH_WORDS)
+        french_word = choice["French"]
+        english_word = choice["English"]
+        if french_word in known_words:
+            choose_words()
+    except FileNotFoundError:
+        choice = random.choice(FRENCH_WORDS)
+        french_word = choice["French"]
+        english_word = choice["English"]
+        if french_word in known_words:
+            choose_words()
 
 def new_card():
     global job1,job2,known_words,missed_words,FRENCH_WORDS
@@ -37,10 +55,9 @@ def new_card():
     canvas.itemconfig(card, image=front_image)
     canvas.itemconfig(language, text=FRONT_LANGUAGE)
     canvas.itemconfig(vocab, text=french_word)
-    words_to_learn = [{"French":key, "English": value} for key,value in FRENCH_WORDS.items() if key not in known_words]
 #TODO: come back later and fix  the saving of words. This just  creates a new file rather than appending or removing learned words
-    new_df = pd.DataFrame([words_to_learn])
-    new_df.to_csv('./data/french_words_to_learn.csv', index=False)
+    new_df = pd.DataFrame(known_words.items(), columns=["French", "English"])
+    new_df.to_csv('./data/french_words_learned.csv', index=False)
     def forced_miss():
         global job1, job2
         job1 = window.after(10000, wrong)
@@ -49,14 +66,14 @@ def new_card():
 
 def correct():
     global known_words, english_word, french_word
-    known_words.append({french_word: english_word})
+    known_words[french_word] = english_word
     choose_words()
     new_card()
     print(known_words)
 
 def wrong():
     global missed_words,english_word,french_word
-    missed_words.append({french_word: english_word})
+    missed_words[french_word] = english_word
     choose_words()
     new_card()
     print(missed_words)
